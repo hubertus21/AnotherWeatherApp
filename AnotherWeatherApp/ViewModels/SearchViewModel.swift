@@ -10,9 +10,9 @@ import RxSwift
 import RxRelay
 
 class SearchViewModel {
-    let api = OpenMeteoAPI()
-    let savedSearches = SavedSearchesDatabase()
-    var disposeBag = DisposeBag()
+    private let api = OpenMeteoAPI()
+    private let savedSearches = SavedSearchesDatabase()
+    private let disposeBag = DisposeBag()
     
     var foundCities = BehaviorRelay<[City]>(value: [])
     
@@ -21,7 +21,7 @@ class SearchViewModel {
             .filter {
                 self.checkCityWithRegex($0)
             }.flatMapLatest {
-                self.api.searchForCities(name: $0).asDriver(onErrorJustReturn: CityQuery(results: [])).asObservable()
+                self.api.searchForCities(name: $0).asDriver(onErrorJustReturn: CitySearchResponse(results: [])).asObservable()
             }.map {
                 $0.results
             }.map {

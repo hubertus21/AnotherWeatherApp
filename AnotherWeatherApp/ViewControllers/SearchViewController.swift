@@ -28,15 +28,10 @@ class SearchViewController: UIViewController {
         }.disposed(by: disposeBag)
         
         tableView.rx.itemSelected.subscribe { indexPath in
-            //print(indexPath)
             self.tableView.deselectRow(at: indexPath, animated: true)
             self.showDetailedWeather(indexPath)
             self.viewModel.saveCity(indexPath: indexPath)
         }.disposed(by: disposeBag)
-        
-        
-        //print(WMOCodeTranslator.describe(wmoCode: "67"))
-        // Do any additional setup after loading the view.
     }
 
     func showDetailedWeather(_ indexPath : IndexPath) {

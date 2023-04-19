@@ -13,7 +13,9 @@ class OpenMeteoAPI {
     let searchUrl = "https://geocoding-api.open-meteo.com/v1/search"
     let forecastUrl = "https://api.open-meteo.com/v1/forecast"
     
-    func searchForCities(name: String) -> Observable<CityQuery> {
+    let units = WeatherUnits(temperature: "°C", relativeHumidity: "%", precipitationProbability: "%", precipitation: "mm")
+    
+    func searchForCities(name: String) -> Observable<CitySearchResponse> {
         let params = [
             "name" : name,
             "count" : "100",

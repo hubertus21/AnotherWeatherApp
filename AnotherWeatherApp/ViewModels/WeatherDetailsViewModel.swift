@@ -14,10 +14,6 @@ class WeatherDetailsViewModel {
     private var hourlyUnits : [String: String] = [:]
     let city : City
     
-    var temperatureUnit : String {
-        hourlyUnits["temperature_2m"] ?? ""
-    }
-    
     var currentTemperature = BehaviorRelay<Double?>(value: nil)
     var apparentTemperature = BehaviorRelay<Double?>(value: nil)
     var precipitation = BehaviorRelay<Double?>(value: nil)
@@ -25,6 +21,10 @@ class WeatherDetailsViewModel {
     var hourlyForecasts = BehaviorRelay<[HourlyForecast]>(value: [])
     var dailyForecasts = BehaviorRelay<[DailyForecast]>(value: [])
     let disposeBag = DisposeBag()
+    
+    var units : WeatherUnits {
+        api.units
+    }
     
     init(city: City) {
         self.city = city
@@ -36,7 +36,6 @@ class WeatherDetailsViewModel {
             let currentHour = Calendar.current.component(.hour, from: Date())
             let currentForecast = forecasts[currentHour]
             
-            self.hourlyUnits = response.hourlyUnits
             self.hourlyForecasts.accept(forecasts)
             self.currentTemperature.accept(currentForecast.temperature)
             self.apparentTemperature.accept(currentForecast.apparentTemperature)

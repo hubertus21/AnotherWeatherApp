@@ -9,11 +9,6 @@ import Foundation
 
 struct DailyWeatherResponse : Codable {
     var daily : DailyForecastResponse
-    var dailyUnits : [String: String]
-    enum CodingKeys : String, CodingKey {
-        case daily
-        case dailyUnits = "daily_units"
-    }
 }
 
 struct DailyForecastResponse : Codable {

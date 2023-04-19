@@ -23,30 +23,62 @@ class WeatherDetailsViewController : UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        viewModel?.getForecast()
-        cityNameLabel.text = viewModel?.city.name
-        viewModel?.currentTemperature.map { $0?.description ?? "-" }.map{ "Temperature: \($0) \(self.viewModel?.temperatureUnit ?? "")" }.bind(to: currentTemperatureLabel.rx.text).disposed(by: disposeBag)
-        viewModel?.currentTemperature.compactMap{ $0 }.map {
-            if $0 < 10 {
-                return .blue
-            }else if $0 >= 10 && $0 <= 20 {
-                return .black
-            }else {
-                return .red
-            }
-        }.bind(to: currentTemperatureLabel.rx.textColor).disposed(by: disposeBag)
-        viewModel?.weatherDescription.bind(to: weatherDescriptionLabel.rx.text).disposed(by: disposeBag)
+        guard let viewModel else { return }
+        viewModel.getForecast()
         
-        viewModel?.precipitation.map { "Precipitation: \($0?.description ?? "-") mm" }.bind(to: precipitationLabel.rx.text).disposed(by: disposeBag)
+        self.setupLabels()
+        self.setupTableAndCollectionView()
+    }
+    
+    private func setupLabels() {
+        guard let viewModel else { return }
+        let units = viewModel.units
         
-        viewModel?.apparentTemperature.map { "Apparent temperature: \($0?.description ?? "-") \(self.viewModel?.temperatureUnit ?? "")" }.bind(to: apparentTemperatureLabel.rx.text).disposed(by: disposeBag)
-        viewModel?.hourlyForecasts.bind(to: hourlyWeatherCollection.rx.items(cellIdentifier: "HourlyWeather", cellType: HourlyWeatherCell.self)) { _, element, cell in
-            cell.setup(temperature: element.temperature, temperatureUnit: self.viewModel?.temperatureUnit ?? "", time: element.time, precipitation: element.precipitation)
+        cityNameLabel.text = viewModel.city.name
+        viewModel.weatherDescription.bind(to: weatherDescriptionLabel.rx.text).disposed(by: disposeBag)
+        
+        viewModel.currentTemperature
+            .map { "Temperature: \($0?.description ?? "-") \(units.temperature)" }
+            .bind(to: currentTemperatureLabel.rx.text)
+            .disposed(by: disposeBag)
+        
+        viewModel.currentTemperature
+            .compactMap { $0 }
+            .map {
+                self.colorForTemperature($0)
+            }.bind(to: currentTemperatureLabel.rx.textColor)
+            .disposed(by: disposeBag)
+        
+        viewModel.precipitation
+            .map { "Precipitation: \($0?.description ?? "-") \(units.precipitation)" }
+            .bind(to: precipitationLabel.rx.text).disposed(by: disposeBag)
+        
+        viewModel.apparentTemperature
+            .map { "Apparent temperature: \($0?.description ?? "-") \(units.temperature)" }
+            .bind(to: apparentTemperatureLabel.rx.text).disposed(by: disposeBag)
+    }
+    
+    private func setupTableAndCollectionView() {
+        guard let viewModel else { return }
+        let units = viewModel.units
+        
+        viewModel.hourlyForecasts.bind(to: hourlyWeatherCollection.rx.items(cellIdentifier: "HourlyWeather", cellType: HourlyWeatherCell.self)) { _, hourlyForecast, cell in
+            cell.setup(hourlyForecast, units)
         }.disposed(by: disposeBag)
         
-        viewModel?.dailyForecasts.bind(to: dailyWeatherTable.rx.items(cellIdentifier: "DailyForecast", cellType: DailyForecastCell.self)) {
-            _, element, cell in
-            cell.setup(dailyForecast: element)
+        viewModel.dailyForecasts.bind(to: dailyWeatherTable.rx.items(cellIdentifier: "DailyForecast", cellType: DailyForecastCell.self)) {
+            _, dailyForecast, cell in
+            cell.setup(dailyForecast, units)
         }.disposed(by: disposeBag)
+    }
+    
+    fileprivate func colorForTemperature(_ temp: Double) -> UIColor {
+        if temp < 10 {
+            return .blue
+        }else if temp >= 10 && temp <= 20 {
+            return .black
+        }else {
+            return .red
+        }
     }
 }
