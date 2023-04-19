@@ -28,7 +28,6 @@ struct HourlyForecastResponse : Codable {
         case apparentTemperature = "apparent_temperature"
         case weatherCode = "weathercode"
         case pressureAtSeaLevel = "pressure_msl"
-        
     }
     
     func groupByHours() -> [HourlyForecast] {

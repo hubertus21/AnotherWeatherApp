@@ -18,14 +18,14 @@ class SearchViewModel {
     
     func setup(searchInput: Observable<String?>) {
         searchInput.compactMap { $0 }
-            .filter {
+            .filter { [unowned self] in
                 self.checkCityWithRegex($0)
-            }.flatMapLatest {
+            }.flatMapLatest { [unowned self] in
                 self.api.searchForCities(name: $0).asDriver(onErrorJustReturn: CitySearchResponse(results: [])).asObservable()
             }.map {
                 $0.results
-            }.map {
-                $0.isEmpty ? self.savedSearches.getChosenCities(): $0
+            }.map { [unowned self] in
+                $0.isEmpty ? self.savedSearches.getChosenCities() : $0
             }.bind(to: foundCities)
             .disposed(by: disposeBag)
         

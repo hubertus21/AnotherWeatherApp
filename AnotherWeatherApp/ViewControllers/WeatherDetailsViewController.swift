@@ -44,8 +44,8 @@ class WeatherDetailsViewController : UIViewController {
         
         viewModel.currentTemperature
             .compactMap { $0 }
-            .map {
-                self.colorForTemperature($0)
+            .map { [unowned self] temp in
+                self.colorForTemperature(temp)
             }.bind(to: currentTemperatureLabel.rx.textColor)
             .disposed(by: disposeBag)
         

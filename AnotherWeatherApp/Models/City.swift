@@ -23,4 +23,15 @@ class City : Object, Codable {
             .compactMap({ $0 })
             .joined(separator: ", ")
     }
+    
+    enum CodingKeys : String, CodingKey {
+        case name
+        case latitude
+        case longitude
+        case admin1
+        case admin2
+        case admin3
+        case admin4
+        case countryCode = "country_code"
+    }
 }

@@ -31,7 +31,7 @@ class WeatherDetailsViewModel {
     }
     
     func getForecast() {
-        api.getHourlyForecast(latitude: city.latitude, longitude: city.longitude).subscribe(onNext: { response in
+        api.getHourlyForecast(latitude: city.latitude, longitude: city.longitude).subscribe(onNext: { [unowned self] response in
             let forecasts = response.hourly.groupByHours()
             let currentHour = Calendar.current.component(.hour, from: Date())
             let currentForecast = forecasts[currentHour]
@@ -43,9 +43,8 @@ class WeatherDetailsViewModel {
             self.precipitation.accept(currentForecast.precipitation)
         }).disposed(by: disposeBag)
         
-        api.getDailyForecast(latitude: city.latitude, longitude: city.longitude).subscribe(onNext: {
-            print($0)
-            self.dailyForecasts.accept($0.daily.groupByDay())
+        api.getDailyForecast(latitude: city.latitude, longitude: city.longitude).subscribe(onNext: { [unowned self] response in
+            self.dailyForecasts.accept(response.daily.groupByDay())
         }).disposed(by: disposeBag)
     }
 }
