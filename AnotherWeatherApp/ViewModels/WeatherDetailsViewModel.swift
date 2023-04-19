@@ -7,6 +7,7 @@
 
 import Foundation
 import RxSwift
+import RxRelay
 
 class WeatherDetailsViewModel {
     private let api = OpenMeteoAPI()
@@ -17,12 +18,12 @@ class WeatherDetailsViewModel {
         hourlyUnits["temperature_2m"] ?? ""
     }
     
-    var currentTemperature = BehaviorSubject<Double?>(value: nil)
-    var apparentTemperature = BehaviorSubject<Double?>(value: nil)
-    var precipitation = BehaviorSubject<Double?>(value: nil)
-    var weatherDescription = BehaviorSubject<String>(value: "")
-    var hourlyForecasts = BehaviorSubject<[HourlyForecast]>(value: [])
-    var dailyForecasts = BehaviorSubject<[DailyForecast]>(value: [])
+    var currentTemperature = BehaviorRelay<Double?>(value: nil)
+    var apparentTemperature = BehaviorRelay<Double?>(value: nil)
+    var precipitation = BehaviorRelay<Double?>(value: nil)
+    var weatherDescription = BehaviorRelay<String>(value: "")
+    var hourlyForecasts = BehaviorRelay<[HourlyForecast]>(value: [])
+    var dailyForecasts = BehaviorRelay<[DailyForecast]>(value: [])
     let disposeBag = DisposeBag()
     
     init(city: City) {
@@ -30,24 +31,22 @@ class WeatherDetailsViewModel {
     }
     
     func getForecast() {
-        api.getDailyForecast(latitude: city.latitude, longitude: city.longitude).subscribe(onNext: {
-            print($0)
-            self.dailyForecasts.onNext($0.daily.toDailyForecasts())
-        }).disposed(by: disposeBag)
-        
         api.getHourlyForecast(latitude: city.latitude, longitude: city.longitude).subscribe(onNext: { response in
-            let forecasts = response.hourly.toHourlyForecasts()
+            let forecasts = response.hourly.groupByHours()
             let currentHour = Calendar.current.component(.hour, from: Date())
             let currentForecast = forecasts[currentHour]
             
             self.hourlyUnits = response.hourlyUnits
-            self.hourlyForecasts.onNext(forecasts)
-            self.currentTemperature.onNext(currentForecast.temperature)
-            self.apparentTemperature.onNext(currentForecast.apparentTemperature)
-            self.weatherDescription.onNext(WMOCodeTranslator.describe(wmoCode: currentForecast.weatherCode))
-            self.precipitation.onNext(currentForecast.precipitation)
+            self.hourlyForecasts.accept(forecasts)
+            self.currentTemperature.accept(currentForecast.temperature)
+            self.apparentTemperature.accept(currentForecast.apparentTemperature)
+            self.weatherDescription.accept(WMOCodeTranslator.describe(wmoCode: currentForecast.weatherCode))
+            self.precipitation.accept(currentForecast.precipitation)
+        }).disposed(by: disposeBag)
+        
+        api.getDailyForecast(latitude: city.latitude, longitude: city.longitude).subscribe(onNext: {
+            print($0)
+            self.dailyForecasts.accept($0.daily.groupByDay())
         }).disposed(by: disposeBag)
     }
-    
-    
 }

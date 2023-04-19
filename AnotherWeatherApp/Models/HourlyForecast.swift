@@ -16,11 +16,3 @@ struct HourlyForecast {
     var weatherCode : Int
     var pressureAtSeaLevel : Double
 }
-
-struct DailyForecast {
-    var time : Date
-    var minTemperature : Double
-    var maxTemperature : Double
-    var precipitationProbability : Int?
-    var weatherCode : Int
-}

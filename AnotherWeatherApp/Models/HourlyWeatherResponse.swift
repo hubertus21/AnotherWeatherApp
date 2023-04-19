@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct WeatherForecastResponse : Codable {
+struct HourlyWeatherResponse : Codable {
     var hourly : HourlyForecastResponse
     var hourlyUnits : [String: String]
     enum CodingKeys : String, CodingKey {
@@ -36,47 +36,12 @@ struct HourlyForecastResponse : Codable {
         
     }
     
-    func toHourlyForecasts() -> [HourlyForecast] {
+    func groupByHours() -> [HourlyForecast] {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm"
         
         return (0..<time.count).map { i in
             HourlyForecast(time: dateFormatter.date(from:time[i])!, temperature: temperature[i], relativeHumidity: relativeHumidity[i], precipitation: precipitation[i], apparentTemperature: apparentTemperature[i], weatherCode: weatherCode[i], pressureAtSeaLevel: pressureAtSeaLevel[i])
-        }
-    }
-}
-
-struct WeatherDailyForecastResponse : Codable {
-    var daily : DailyForecastResponse
-    var dailyUnits : [String: String]
-    enum CodingKeys : String, CodingKey {
-        case daily
-        case dailyUnits = "daily_units"
-    }
-}
-
-struct DailyForecastResponse : Codable {
-    var time : [String]
-    var precipitationProbability : [Int?]
-    var minTemperature : [Double]
-    var maxTemperature : [Double]
-    var weatherCode : [Int]
-    
-    enum CodingKeys : String, CodingKey {
-        case time
-        case minTemperature = "temperature_2m_min"
-        case maxTemperature = "temperature_2m_max"
-        case precipitationProbability = "precipitation_probability_max"
-        case weatherCode = "weathercode"
-        
-    }
-    
-    func toDailyForecasts() -> [DailyForecast] {
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd"
-        
-        return (0..<time.count).map { i in
-            DailyForecast(time: dateFormatter.date(from: time[i])!, minTemperature: minTemperature[i], maxTemperature: maxTemperature[i], precipitationProbability: precipitationProbability[i], weatherCode: weatherCode[i])
         }
     }
 }

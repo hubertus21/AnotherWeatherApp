@@ -7,39 +7,39 @@
 
 import Foundation
 import RxSwift
+import RxRelay
 
 class SearchViewModel {
     let api = OpenMeteoAPI()
-    let savedSearches = SavedSearches()
+    let savedSearches = SavedSearchesDatabase()
     var disposeBag = DisposeBag()
     
-    var foundCities = BehaviorSubject(value: [City]())
+    var foundCities = BehaviorRelay<[City]>(value: [])
     
     func setup(searchInput: Observable<String?>) {
-        searchInput.compactMap { $0 }.filter{
-            self.checkCityWithRegex($0)
-        }.flatMapLatest{
-            self.api.searchForCities(name: $0).asDriver(onErrorJustReturn: CityQuery(results: [])).asObservable()
-        }.map {
-            $0.results
-        }
-        .map {
-            $0.isEmpty ? self.savedSearches?.getChosenCities() ?? [] : $0
-        }.bind(to: foundCities)
-        .disposed(by: disposeBag)
+        searchInput.compactMap { $0 }
+            .filter {
+                self.checkCityWithRegex($0)
+            }.flatMapLatest {
+                self.api.searchForCities(name: $0).asDriver(onErrorJustReturn: CityQuery(results: [])).asObservable()
+            }.map {
+                $0.results
+            }.map {
+                $0.isEmpty ? self.savedSearches.getChosenCities(): $0
+            }.bind(to: foundCities)
+            .disposed(by: disposeBag)
         
-        foundCities.onNext(savedSearches?.getChosenCities() ?? [])
+        foundCities.accept(savedSearches.getChosenCities())
     }
     
     func getDetailsViewModel(indexPath: IndexPath) -> WeatherDetailsViewModel? {
-        guard let foundCities = try? foundCities.value() else { return nil }
-        
+        let foundCities = foundCities.value
         return WeatherDetailsViewModel(city: foundCities[indexPath.row])
     }
     
     func saveCity(indexPath: IndexPath) {
-        guard let foundCities = try? foundCities.value() else { return }
-        savedSearches?.addChosen(city: foundCities[indexPath.row])
+        let foundCities = foundCities.value
+        savedSearches.addChosen(city: foundCities[indexPath.row])
     }
     
     func checkCityWithRegex(_ name: String) -> Bool {
