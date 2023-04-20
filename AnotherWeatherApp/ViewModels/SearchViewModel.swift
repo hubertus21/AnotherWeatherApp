@@ -15,8 +15,15 @@ class SearchViewModel {
     private let disposeBag = DisposeBag()
     
     var foundCities = BehaviorRelay<[City]>(value: [])
+    var validCityName = BehaviorRelay(value: true)
     
     func setup(searchInput: Observable<String?>) {
+        searchInput.compactMap{ $0 }
+            .map { [unowned self] in
+                self.checkCityWithRegex($0)
+            }.bind(to: validCityName)
+            .disposed(by: disposeBag)
+        
         searchInput.compactMap { $0 }
             .filter { [unowned self] in
                 self.checkCityWithRegex($0)
@@ -43,7 +50,7 @@ class SearchViewModel {
     }
     
     func checkCityWithRegex(_ name: String) -> Bool {
-        let regex = try? NSRegularExpression(pattern: #"^[A-Za-z]{1}[\w -.]*$"#)
+        let regex = try? NSRegularExpression(pattern: #"^[A-Za-z]{1}[\w -.]+$"#)
         let range = NSMakeRange(0, name.utf16.count)
         return regex?.matches(in: name, range: range).count == 1
     }

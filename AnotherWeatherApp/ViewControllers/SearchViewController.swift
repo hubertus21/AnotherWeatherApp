@@ -21,6 +21,9 @@ class SearchViewController: UIViewController {
         super.viewDidLoad()
         
         viewModel.setup(searchInput: textField.rx.text.asObservable())
+        viewModel.validCityName.map {
+            $0 ? UIColor.black : UIColor.red
+        }.bind(to: textField.rx.textColor).disposed(by: disposeBag)
         viewModel.foundCities.bind(to: tableView.rx.items(cellIdentifier: "SearchCell")) { (index, cities, cell) in
             cell.textLabel?.text = cities.locationDescription
             cell.textLabel?.textColor = .black

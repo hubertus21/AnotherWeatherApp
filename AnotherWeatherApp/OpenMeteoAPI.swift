@@ -49,7 +49,6 @@ class OpenMeteoAPI {
             AF.request(url, parameters: params).response { dataResponse in
                 let decoder = JSONDecoder()
                 do {
-                    print("DEBUG", String(data: dataResponse.data!, encoding: .utf8))
                     let result = try decoder.decode(T.self, from: dataResponse.data ?? Data())
                     subscription.onNext(result)
                 }catch {
